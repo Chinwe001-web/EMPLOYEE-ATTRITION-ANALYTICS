@@ -1,0 +1,133 @@
+----SOME QUESTIONS SOLVED 
+
+---1-The HR wants to prioritize which employees needs the most attention in each department.
+---  Use row number in ranking the employees within the department
+
+
+WITH rankedemployee AS(
+    SELECT 
+	employee_id,
+	department,
+	job_satisfaction,
+ROW_NUMBER() OVER (PARTITION BY department ORDER BY job_satisfaction ASC) AS satisfaction_rank
+FROM employee_attrition
+)
+SELECT employee_id,department,job_satisfaction
+FROM rankedemployee
+WHERE satisfaction_rank = 1;
+
+--Which department has the least job satisfaction value?
+
+SELECT department,AVG(job_satisfaction)AS avg_satisfaction
+FROM employee_attrition
+GROUP BY department
+ORDER BY avg_satisfaction ASC
+LIMIT 1;
+
+---who are the top 3 performers in each department?
+
+WITH rankedemployees AS (
+    SELECT 
+        employee_id, 
+        department, 
+        performance_rating,
+        ROW_NUMBER() OVER (PARTITION BY department ORDER BY performance_rating DESC) AS perf_rank
+    FROM employee_attrition
+)
+SELECT employee_id, department, performance_rating
+FROM rankedemployees
+WHERE perf_rank <= 3;
+
+---identify employees who are like to leave comparing their individual performance to the department average.
+SELECT employee_id, department, job_satisfaction,
+AVG(job_satisfaction) OVER (PARTITION BY department) AS dept_avg_satisfaction,
+job_satisfaction - AVG(job_satisfaction) OVER (PARTITION BY department) AS diff_from_avg
+FROM employee_attrition;
+
+---identify number of employees per department
+
+SELECT department, COUNT(*) AS total_in_department
+FROM employee_attrition
+GROUP BY department;
+---compare employees job satisfaction based on years of stay
+
+SELECT employee_id, age, years_at_company, job_satisfaction,
+LAG(job_satisfaction) OVER (PARTITION BY department ORDER BY years_at_company) AS prev_emp_satisfaction,
+LEAD(job_satisfaction) OVER (PARTITION BY department ORDER BY years_at_company) AS next_emp_satisfaction
+FROM employee_attrition;
+
+---segment the workforce into  veteran,senior,mid role and junior role based on total working years.
+SELECT employee_id, total_working_years,
+NTILE(4) OVER (ORDER BY total_working_years) AS experience_quartile
+FROM employee_attrition;
+
+---identify employees who leave exceptionally far from work-EMP025,EMP028,EMP082,helps spot out high risked employees
+SELECT employee_id, distance_from_home,
+PERCENT_RANK() OVER (ORDER BY distance_from_home) AS pct_rank,
+CUME_DIST() OVER (ORDER BY distance_from_home) AS cumulative_dist
+FROM employee_attrition;
+
+---identify employees who have gone the longest without a promotion.A key frustration that can lead to resignation.
+SELECT employee_id, department, years_since_last_promotion,
+MAX(years_since_last_promotion) OVER (PARTITION BY department) AS max_no_promotion,
+MIN(years_since_last_promotion) OVER (PARTITION BY department) AS min_no_promotion
+FROM employee_attrition;
+
+
+---find out the attrition rate percent
+
+SELECT
+    COUNT(*) AS total_employees,
+    SUM(CASE WHEN attrition = 'Yes' THEN 1 ELSE 0 END) AS employees_left,
+    SUM(CASE WHEN attrition = 'No' THEN 1 ELSE 0 END) AS employees_stayed,
+    ROUND(
+        SUM(CASE WHEN attrition = 'Yes' THEN 1 ELSE 0 END) * 100.0 
+        / COUNT(*), 1
+    ) AS attrition_rate_pct
+FROM employee_attrition;
+
+---evaluate the attrition rate for overtime workers only
+SELECT 
+    COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) AS left_count,
+    COUNT(*) AS total_overtime_employees,
+    ROUND(
+        COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) * 100.0 
+        / COUNT(*), 1
+    ) AS attrition_pct
+FROM employee_attrition
+WHERE overtime = 'Yes';
+
+--evaluate attrition rate for employees with job satisfaction value at 1
+
+SELECT 
+    COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) AS left_count,
+    COUNT(*) AS total_score1_employees,
+    ROUND(
+        COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) * 100.0 
+        / COUNT(*), 1
+    ) AS attrition_pct
+FROM employee_attrition
+WHERE job_satisfaction = 1;
+
+---evaluate the attrition rate for employees with poor work life balance rated 1
+SELECT 
+    COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) AS left_count,
+    COUNT(*) AS total_wlb1_employees,
+    ROUND(
+        COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) * 100.0 
+        / COUNT(*), 1
+    ) AS attrition_pct
+FROM employee_attrition
+WHERE work_life_balance = 1
+
+--evaluate attrition rate for employees who do not work overtime and has job satisfaction rated 3 and above
+SELECT 
+    COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) AS left_count,
+    COUNT(*) AS no_overtime_emp,
+    ROUND(
+        COUNT(CASE WHEN attrition = 'Yes' THEN 1 END) * 100.0 
+        / COUNT(*), 1
+    ) AS attrition_pct
+FROM employee_attrition
+WHERE overtime = 'No'
+AND job_satisfaction >=3;
