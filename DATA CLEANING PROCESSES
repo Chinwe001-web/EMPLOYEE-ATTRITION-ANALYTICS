@@ -1,0 +1,307 @@
+SQL ANALYSIS
+-- create employee attrition table.
+
+CREATE TABLE employee_attrition (
+    employee_id               VARCHAR(10) PRIMARY KEY,
+    age                       SMALLINT,
+    attrition                 VARCHAR(5),
+    department                VARCHAR(50),
+    distance_from_home        SMALLINT,
+    education                 SMALLINT,
+    environment_satisfaction  SMALLINT,
+    gender                    VARCHAR(10),
+    job_role                  VARCHAR(50),
+    job_satisfaction          SMALLINT,
+    overtime                  VARCHAR(5),
+    performance_rating        SMALLINT,
+    total_working_years       SMALLINT,
+    training_times_last_year  SMALLINT,
+    work_life_balance         SMALLINT,
+    years_at_company          SMALLINT,
+    years_in_current_role     SMALLINT,
+    years_since_last_promotion SMALLINT
+);
+
+SELECT * FROM employee_attrition;
+
+--check for total row count
+SELECT COUNT(*)AS total_rows FROM employee_attrition;
+
+--data cleaning processes starts here
+--clean the department column
+SELECT DISTINCT department, COUNT(*) AS count
+FROM employee_attrition
+GROUP BY department
+ORDER BY department;
+
+--standardize Human resource
+
+UPDATE employee_attrition
+SET department = 'Human Resources'
+WHERE LOWER(TRIM(department)) IN ('human', 'hr', 'human resources', 'humn resources', 'human resource');--standardize Sales
+
+--standardize sales
+UPDATE employee_attrition
+SET department = 'Sales'
+WHERE LOWER(TRIM(department)) IN ('sales', 'sals');
+
+--standardize Research And Development
+UPDATE employee_attrition
+SET department = 'Research & Development'
+WHERE LOWER(TRIM(department)) IN ('r&d', 'research and development', 'research and dev', 'r & d', 'research & development');
+
+-- Verify the fix
+SELECT DISTINCT department FROM employee_attrition;
+
+--clean the gender column
+-- View the gender values
+SELECT DISTINCT gender, COUNT(*) AS count
+FROM employee_attrition
+GROUP BY gender;
+
+-- Standardize Male value
+UPDATE employee_attrition
+SET gender = 'Male'
+WHERE LOWER(TRIM(gender)) = 'm';
+
+-- Standardize Female value
+UPDATE employee_attrition
+SET gender = 'Female'
+WHERE LOWER(TRIM(gender)) = 'f';
+
+-- Verify the fix
+SELECT DISTINCT gender FROM employee_attrition;
+
+--clean the attrition column
+- View the attrition values
+SELECT DISTINCT attrition, COUNT(*) AS count
+FROM employee_attrition
+GROUP BY attrition;
+
+-- Standardize Yes values
+UPDATE employee_attrition
+SET attrition = 'Yes'
+WHERE LOWER(TRIM(attrition)) IN ('yes', 'y');
+
+-- Standardize No values
+UPDATE employee_attrition
+SET attrition = 'No'
+WHERE LOWER(TRIM(attrition)) IN ('no', 'n');
+
+-- Verify the fix
+SELECT DISTINCT attrition FROM employee_attrition;
+
+--clean overtime column
+-- View overtime values
+SELECT DISTINCT overtime, COUNT(*) AS count
+FROM employee_attrition
+GROUP BY overtime;
+
+-- Standardize Yes values
+UPDATE employee_attrition
+SET overtime = 'Yes'
+WHERE LOWER(TRIM(overtime)) IN ('yes', 'y');
+
+-- Standardize No values
+UPDATE employee_attrition
+SET overtime = 'No'
+WHERE LOWER(TRIM(overtime)) IN ('no', 'n');
+
+-- Verify the fix
+SELECT DISTINCT overtime FROM employee_attrition;
+
+--clean jobrole column
+--view distinct jobrole values
+SELECT DISTINCT job_role, COUNT(*) AS count
+FROM employee_attrition
+GROUP BY job_role
+ORDER BY job_role;
+
+-- Standardize Sales Executive values
+UPDATE employee_attrition
+SET job_role = 'Sales Executive'
+WHERE LOWER(TRIM(job_role)) IN ('sales exec', 'sales executive');
+
+-- Standardize Sales Representative values
+UPDATE employee_attrition
+SET job_role = 'Sales Representative'
+WHERE LOWER(TRIM(job_role)) IN ('sales rep', 'sales representative');
+
+-- Standardize Manager values
+UPDATE employee_attrition
+SET job_role = 'Manager'
+WHERE LOWER(TRIM(job_role)) IN ('manager', 'mgr');
+
+-- Standardize Research Scientist values
+UPDATE employee_attrition
+SET job_role = 'Research Scientist'
+WHERE LOWER(TRIM(job_role)) IN ('res. scientist', 'research scientist');
+
+-- Standardize Laboratory Technician values
+UPDATE employee_attrition
+SET job_role = 'Laboratory Technician'
+WHERE LOWER(TRIM(job_role)) IN ('lab technician', 'lab tech', 'laboratory technician');
+
+-- Standardize HR Representative values
+UPDATE employee_attrition
+SET job_role = 'HR Representative'
+WHERE LOWER(TRIM(job_role)) IN ('hr rep', 'hr representative');
+
+-- Standardize HR Manager values
+UPDATE employee_attrition
+SET job_role = 'HR Manager'
+WHERE LOWER(TRIM(job_role)) IN ('hr manager', 'h.r manager');
+
+-- Standardize Recruiter values
+UPDATE employee_attrition
+SET job_role = 'Recruiter'
+WHERE LOWER(TRIM(job_role)) IN ('recruiter');
+
+-- Verify the fix
+SELECT DISTINCT job_role FROM employee_attrition;
+
+--fix age outliers
+--there are two outliers 150 and -5 that needs to be handled
+
+-- View age outliers
+SELECT employee_id, age
+FROM employee_attrition
+WHERE age < 18 OR age > 65;
+
+--set oulier age to null value
+UPDATE employee_attrition
+SET age = NULL
+WHERE age < 18 OR age > 65;
+
+--view the fix
+SELECT MIN(age) AS min_age, MAX(age) AS max_age FROM employee_attrition;
+
+--trim white spaces  from all text columns
+
+UPDATE employee_attrition
+SET 
+    employee_id = TRIM(employee_id),
+    attrition = TRIM(attrition),
+    department = TRIM(department),
+    gender = TRIM(gender),
+    job_role = TRIM(job_role),
+    overtime = TRIM(overtime);
+
+--handling null columns
+--replace null columns in job satisfaction column with mode 
+- Step 1: Find the mode (most common satisfaction score)
+SELECT job_satisfaction, COUNT(*) AS frequency
+FROM employee_attrition
+WHERE job_satisfaction IS NOT NULL
+GROUP BY job_satisfaction
+ORDER BY frequency DESC
+LIMIT 1;
+
+-- Step 2: Replace nulls with the mode
+UPDATE employee_attrition
+SET job_satisfaction = (
+    SELECT job_satisfaction
+    FROM employee_attrition
+	WHERE job_satisfaction IS NOT NULL
+    GROUP BY job_satisfaction
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+)
+WHERE job_satisfaction IS NULL;
+
+-- Step 3: Verify no nulls remain
+SELECT COUNT(*) AS remaining_nulls
+FROM employee_attrition
+WHERE job_satisfaction IS NULL;
+
+--replace nulls in environment satisfaction with mode by department
+- Step 1: Find the mode per department
+SELECT department, environment_satisfaction, COUNT(*) AS freq
+FROM employee_attrition
+WHERE environment_satisfaction IS NOT NULL
+GROUP BY department, environment_satisfaction
+ORDER BY department, freq DESC;
+
+-- Step 2: Replace nulls with the mode within the same department
+UPDATE employee_attrition a
+SET environment_satisfaction = (
+    SELECT environment_satisfaction
+    FROM employee_attrition b
+    WHERE b.department = a.department
+    AND b.environment_satisfaction IS NOT NULL
+    GROUP BY environment_satisfaction
+    ORDER BY COUNT(*) DESC
+    LIMIT 1
+)
+WHERE environment_satisfaction IS NULL;
+
+-- Step 3: Verify
+SELECT COUNT(*) AS remaining_nulls
+FROM employee_attrition
+WHERE environment_satisfaction IS NULL;
+
+--replace nulls in training times last year with median by jobrole
+
+-- Step 1: Find the median training times per jobrole
+SELECT 
+    job_role,
+    PERCENTILE_CONT(0.5) WITHIN GROUP 
+    (ORDER BY training_times_last_year) AS median_training
+FROM employee_attrition
+WHERE training_times_last_year IS NOT NULL
+GROUP BY job_role;
+
+-- Step 2: Replace nulls with the median for the same job role
+UPDATE employee_attrition a
+SET training_times_last_year = (
+    SELECT ROUND(
+        PERCENTILE_CONT(0.5) WITHIN GROUP 
+        (ORDER BY training_times_last_year)
+    )
+    FROM employee_attrition b
+    WHERE b.job_role = a.job_role
+    AND b.training_times_last_year IS NOT NULL
+)
+WHERE training_times_last_year IS NULL;
+
+-- Step 3: Verify
+SELECT COUNT(*) AS remaining_nulls
+FROM employee_attrition
+WHERE training_times_last_year IS NULL;
+
+--replace nulls in distance from home by average of department
+- Step 1: Find the average distance per department
+SELECT 
+    department,
+    ROUND(AVG(distance_from_home), 0) AS avg_distance
+FROM employee_attrition
+WHERE distance_from_home IS NOT NULL
+GROUP BY department;
+
+-- Step 2: Replace nulls with the average for the same department
+UPDATE employee_attrition a
+SET distance_from_home = (
+    SELECT ROUND(AVG(distance_from_home), 0)
+    FROM employee_attrition b
+	WHERE b.department = a.department
+    AND b.distance_from_home IS NOT NULL
+)
+WHERE distance_from_home IS NULL;
+
+-- Step 3: Verify
+SELECT COUNT(*) AS remaining_nulls
+FROM employee_attrition
+WHERE distance_from_home IS NULL;
+
+--Verify for nulls with columns that had one
+SELECT
+    COUNT(*) AS total_rows,
+    COUNT(*) - COUNT(job_satisfaction) AS null_job_sat,
+    COUNT(*) - COUNT(environment_satisfaction) AS null_env_sat,
+    COUNT(*) - COUNT(training_times_last_year) AS null_training,
+    COUNT(*) - COUNT(distance_from_home) AS null_distance
+FROM employee_attrition;
+
+--finally the clean data view
+SELECT * FROM employee_attrition ORDER BY employee_id;
+
