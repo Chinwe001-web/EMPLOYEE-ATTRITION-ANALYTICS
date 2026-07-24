@@ -39,12 +39,12 @@ Tools used in carrying out this project were;
 
 • Excel -Was used to perform data cleaning particularly eliminating duplicates to enable seamless import into pgadmin.
 
-• SQL-Was used to clean the data,standardize columns,enusre data intergrity and solve some questions.
+• SQL-Was used to clean the data,standardize fields,ensure data intergrity and data querying.
 
 • Power BI-Was used to create some dax measures,new columns,table and display visuals that tell a story about the workforce
 
 
-**KEY METRICS ANALYZED**
+**KEY METRICS TRACKED**
 
 • Total Employees: 100
 
@@ -80,7 +80,7 @@ Tools used in carrying out this project were;
  • Is attrition rate higher among males or females?
 
  
-  **INSIGHTS**
+  **KEY INSIGHTS**
 
  • Attrition rate is critically high at 65%,leading to a drastical loss of employees.This also inidicates that the company is spending more on recruitment ,onboarding and training often and on.
 
@@ -106,7 +106,16 @@ Tools used in carrying out this project were;
  • Remote work and flexible work options should be introduced given that distance from home is a significant attrition driver.This would reduce commute related stress at the same time improving work life balance.
  
  • Attrition should be checked and tracked a s a key metric monthly on PowerBI just as Profit or Revenue is tracked.This will help create an early warning indicator for managers when employees’s satisfaction score drops prior to when they decide to leave.
- 
+
+
+ **DATA SOURCE**
+
+ Data was sourced artificially online-
+ https://1drv.ms/x/c/15AA0654934D2775/IQB2x_b_Ui5pSKqWPlZnTUrCAbN56J8pM25HU14wec3napo?e=BdU0V8&nav=MTVfezAwMDAwMDAwLTAwMDEtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMH0
+
+Built by Chinwe Ibe-
+www.linkedin.com/in/
+chinwe-ibe-431b86102
 
 
 
