@@ -113,9 +113,14 @@ Tools used in carrying out this project were;
  Data was sourced artificially online-
  https://1drv.ms/x/c/15AA0654934D2775/IQB2x_b_Ui5pSKqWPlZnTUrCAbN56J8pM25HU14wec3napo?e=BdU0V8&nav=MTVfezAwMDAwMDAwLTAwMDEtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMH0
 
-Built by Chinwe Ibe-
-www.linkedin.com/in/
+Built by Chinwe Ibe
+
+**CONNECT WITH ME**
+
+**LINKEDIN**-www.linkedin.com/in/
 chinwe-ibe-431b86102
+
+**EMAIL**-chukwuekechinwe@yahoo.com
 
 
 
